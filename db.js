@@ -1,9 +1,9 @@
 const sqlite3 = require('sqlite3').verbose()
-var db
+let db
 
-var existingColsInTable = []
+let existingColsInTable = []
 
-module.exports.createDb = function (filename) {
+module.exports.createOrOpenDb = function (filename) {
     console.log('Creating new SQLite database "' + filename + '"...')
     if (typeof filename == 'string' && filename.endsWith('.db')) {
         db = new sqlite3.Database(filename)
@@ -16,7 +16,7 @@ module.exports.createDb = function (filename) {
 module.exports.createTable = function (name, cols) {
     console.log('Creating new table ' + name)
 
-    var colsForCmd = '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
+    let colsForCmd = '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
 
     cols.forEach((element, key, arr) => {
         existingColsInTable.push(element.name)
@@ -46,7 +46,8 @@ module.exports.dropTable = function (table) {
 module.exports.insertRows = function (table, rowData) {
     console.log('Inserting rows into ' + table)
 
-    var tableCols = '('
+    // TODO: this needs fixing badly
+    let tableCols = '('
     existingColsInTable.forEach((element, key, arr) => {
         tableCols += element
         if (!Object.is(arr.length - 1, key)) {
@@ -57,8 +58,8 @@ module.exports.insertRows = function (table, rowData) {
         }
     })
 
-    var insertCmd = ''
-    var values = []
+    let insertCmd = ''
+    let values = []
 
     rowData.forEach(element => {
         insertCmd = 'INSERT INTO ' + table + ' ' + tableCols + ' VALUES ('
@@ -127,7 +128,7 @@ module.exports.closeDb = function () {
 }
 
 module.exports.initDbWithBaseTables = function (dbName) {
-    this.createDb(dbName)
+    this.createOrOpenDb(dbName)
 
     // create general sysinfo
     this.dropTable('sysinfo')
@@ -210,6 +211,10 @@ module.exports.initDbWithBaseTables = function (dbName) {
     // create user login history table
     this.dropTable('usersHist')
     this.createTable('usersHist', [
+        {
+            name: 'timestamp',
+            type: 'INTEGER'
+        },
         {
             name: 'user',
             type: 'TEXT'
@@ -327,7 +332,7 @@ module.exports.initDbWithBaseTables = function (dbName) {
         },
         {
             name: 'dhcp',
-            type: 'INTEGER'
+            type: 'TEXT'
         },
         {
             name: 'rx',

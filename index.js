@@ -1,9 +1,10 @@
 const path = require('path')
 const express = require('express')
+
 const app = express()
 const port = 3000
 
-var database = require('./db.js')
+let database = require('./db.js')
 
 database.initDbWithBaseTables('main.db')
 
