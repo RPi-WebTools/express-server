@@ -1,10 +1,8 @@
 const sqlite3 = require('sqlite3').verbose()
 let db
 
-let existingColsInTable = []
-
 module.exports.createOrOpenDb = function (filename) {
-    console.log('Creating new SQLite database "' + filename + '"...')
+    console.log('Creating new / Opening SQLite database "' + filename + '"...')
     if (typeof filename == 'string' && filename.endsWith('.db')) {
         db = new sqlite3.Database(filename)
     }
@@ -19,7 +17,6 @@ module.exports.createTable = function (name, cols) {
     let colsForCmd = '(id INTEGER PRIMARY KEY AUTOINCREMENT, '
 
     cols.forEach((element, key, arr) => {
-        existingColsInTable.push(element.name)
         colsForCmd += element.name
         colsForCmd += ' '
         colsForCmd += element.type
@@ -43,12 +40,12 @@ module.exports.dropTable = function (table) {
     db.serialize()
 }
 
-module.exports.insertRows = function (table, rowData) {
+module.exports.insertRows = function (table, cols, rowData) {
     console.log('Inserting rows into ' + table)
 
     // TODO: this needs fixing badly
     let tableCols = '('
-    existingColsInTable.forEach((element, key, arr) => {
+    cols.forEach((element, key, arr) => {
         tableCols += element
         if (!Object.is(arr.length - 1, key)) {
             tableCols += ', '

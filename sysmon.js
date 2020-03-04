@@ -65,7 +65,7 @@ async function getUsersHist () {
     return result
 }
 
-async function getFsHist() {
+async function getFsHist () {
     let time = getTime()
     let blkDevices = await si.blockDevices()
     let fsSize = await si.fsSize()
@@ -93,7 +93,7 @@ async function getFsHist() {
     return result
 }
 
-async function getFsIoHist() {
+async function getFsIoHist () {
     let time = getTime()
     let io = await si.disksIO()
 
@@ -104,7 +104,7 @@ async function getFsIoHist() {
     }
 }
 
-async function getNetHist() {
+async function getNetHist () {
     let time = getTime()
     let netIfaces = await si.networkInterfaces()
     let netStats = await si.networkStats()
@@ -139,7 +139,7 @@ async function getNetHist() {
     return result
 }
 
-async function getDockerInfoHist() {
+async function getDockerInfoHist () {
     let time = getTime()
     let dockerInfo = await si.dockerInfo()
 
