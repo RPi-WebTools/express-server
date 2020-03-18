@@ -117,6 +117,90 @@ app.get('/api/fsInfo', (req, res) => res.send([
     }
 ]))
 
+app.get('/api/userInfo', (req, res) => res.send([
+    {
+        num: 1,
+        user: 'pi',
+        terminal: 'ttyBla',
+        loginDate: '07.03.20',
+        loginTime: '13:00',
+        ip: '192.168.100.100',
+        lastCmd: 'htop'
+    },
+    {
+        num: 2,
+        user: 'raspi',
+        terminal: 'ttyBlub',
+        loginDate: '10.03.80',
+        loginTime: '17:00',
+        ip: '192.168.6.30',
+        lastCmd: 'nope'
+    }
+]))
+
+app.get('/api/userHist', (req, res) => res.send({
+    timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+    users: {
+        pi: [1, 3, 2, 5, 1, 1, 9, 0, 1],
+        raspi: [0, 6, 2, 3, 4, 0, 3, 2, 2]
+    }
+}))
+
+app.get('/api/netInfo', (req, res) => res.send([
+    {
+        num: 1,
+        iface: 'eth0',
+        ip: '192.168.100.100',
+        mac: '00ebfedasvdewieuvfavea',
+        type: 'wired',
+        speed: '1000',
+        dhcp: 'true',
+        rx: 203754,
+        tx: 295352
+    },
+    {
+        num: 2,
+        iface: 'eth1',
+        ip: '192.168.52.40',
+        mac: '0998gqaw98gf8o47v',
+        type: 'wireless',
+        speed: '100',
+        dhcp: 'false',
+        rx: 27833,
+        tx: 69829
+    }
+]))
+
+app.get('/api/cpuInfo', (req, res) => res.send({
+    curCpuLoad: 23,
+    curCpuTemp: 40
+}))
+
+app.get('/api/cpuHist', (req, res) => res.send({
+    timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+    usage: [10, 32, 26, 54, 19, 18, 92, 4, 21],
+    temperature: [25, 32, 26, 54, 33, 39, 29, 42, 44]
+}))
+
+app.get('/api/memInfo', (req, res) => res.send({
+    curMemUsed: 20,
+    curMemBuffered: 10,
+    curMemCached: 38
+}))
+
+app.get('/api/testData', (req, res) => res.send({
+    a: 'sdelfbsef',
+    b: '2372385',
+    c: 'afugilef',
+    d: '948532',
+    e: 'wlfuabdlfia',
+    f: '49853645',
+    g: 'afuvaidf',
+    h: '39485z3',
+    i: 'SDSBDAFBAbvO',
+    j: '75t25'
+}))
+
 // error handler
 app.use(function (err, req, res, next) {
     console.error(err.stack)
