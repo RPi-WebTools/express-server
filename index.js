@@ -62,7 +62,9 @@ app.get('/api/fsInfo', (req, res) => res.send([
         modelName: 'External_USB_3.0',
         interface: 'USB',
         diskType: 'HD',
-        removable: false
+        removable: false,
+        partitionLabels: ['Part1', 'Part2', 'Part3'],
+        partitions: [264697825962, 264697825962, 264125442752]
     },
     {
         num: 2,
@@ -79,7 +81,9 @@ app.get('/api/fsInfo', (req, res) => res.send([
         modelName: 'ST1000DM003-1CH162',
         interface: 'USB',
         diskType: 'HD',
-        removable: false
+        removable: false,
+        partitionLabels: ['Partition'],
+        partitions: [499977781248]
     },
     {
         num: 3,
@@ -96,7 +100,9 @@ app.get('/api/fsInfo', (req, res) => res.send([
         modelName: 'USB_3.0_Device',
         interface: 'USB',
         diskType: 'HD',
-        removable: false
+        removable: false,
+        partitionLabels: ['Data', 'Stuff'],
+        partitions: [499977781248, 1000191556266]
     },
     {
         num: 4,
@@ -113,7 +119,44 @@ app.get('/api/fsInfo', (req, res) => res.send([
         modelName: 'USB_Flash_Disk',
         interface: 'USB',
         diskType: 'HD',
-        removable: true
+        removable: true,
+        partitionLabels: ['Part'],
+        partitions: [15916335104]
+    }
+]))
+
+app.get('/api/fsHist', (req, res) => res.send([
+    {
+        uuid: 'eluwgg-398z93',
+        timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        used: [180823112487, 571856243995, 877133753355, 898486387102, 180823112487, 571856243995, 877133753355, 898486387102, 877133753355],
+        smart: ['Ok', 'Ok', 'Ok', 'Ok', 'Ok', 'Ok', 'Ok', 'Ok', 'Ok'],
+        rx: [20, 30, 40, 20, 40, 30, 20, 40, 0],
+        tx: [10, 20, 40, 45, 11, 12, 20, 49, 20]
+    },
+    {
+        uuid: 'uibiu-39aasdz93',
+        timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        used: [571856243995, 898486387102, 180823112487, 571856243995, 180823112487, 180823112487, 180823112487, 898486387102, 898486387102],
+        smart: ['Ok', 'Ok', 'Ok', 'Ok', 'Predicted Failure', 'Predicted Failure', 'Predicted Failure', 'Predicted Failure', 'Predicted Failure'],
+        rx: [49, 10, 20, 30, 20, 10, 0, 20, 10],
+        tx: [33, 25, 43, 20, 30, 40, 20, 22, 10]
+    },
+    {
+        uuid: '6357s-398z93',
+        timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        used: [571856243995, 571856243995, 180823112487, 571856243995, 571856243995, 180823112487, 571856243995, 571856243995, 571856243995],
+        smart: ['unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown'],
+        rx: [10, 20, 40, 45, 11, 12, 20, 49, 20],
+        tx: [20, 30, 40, 20, 40, 30, 20, 40, 0]
+    },
+    {
+        uuid: 'fubwligo8aasd',
+        timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        used: [571856243995, 898486387102, 180823112487, 571856243995, 180823112487, 180823112487, 180823112487, 898486387102, 898486387102],
+        smart: ['unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown'],
+        rx: [33, 25, 43, 20, 30, 40, 20, 22, 10],
+        tx: [49, 10, 20, 30, 20, 10, 0, 20, 10]
     }
 ]))
 
@@ -171,6 +214,12 @@ app.get('/api/netInfo', (req, res) => res.send([
     }
 ]))
 
+app.get('/api/netHist', (req, res) => res.send({
+    timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+    rx: [10, 32, 26, 54, 19, 18, 92, 4, 21],
+    tx: [25, 32, 26, 54, 33, 39, 29, 42, 44]
+}))
+
 app.get('/api/cpuInfo', (req, res) => res.send({
     curCpuLoad: 23,
     curCpuTemp: 40
@@ -186,6 +235,14 @@ app.get('/api/memInfo', (req, res) => res.send({
     curMemUsed: 20,
     curMemBuffered: 10,
     curMemCached: 38
+}))
+
+app.get('/api/memHist', (req, res) => res.send({
+    timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+    used: [25, 32, 26, 54, 33, 39, 29, 42, 44],
+    buffered: [10, 12, 16, 20, 10, 12, 10, 20, 30],
+    cached: [15, 6, 25, 2, 10, 4, 0, 13, 5],
+    swap: [0, 1, 0, 5, 4, 0, 0, 2, 10]
 }))
 
 app.get('/api/testData', (req, res) => res.send({
