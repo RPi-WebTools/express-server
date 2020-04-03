@@ -1,6 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const express = require('express')
+const cron = require('node-cron')
 
 const routerSysMon = require('./api/sysmon')
 const routerSysServ = require('./api/sysserv')
@@ -8,27 +9,9 @@ const routerSysServ = require('./api/sysserv')
 const app = express()
 const port = 3001
 
+const sysmonFetcher = require('./sysmon-fetcher')
+const dbName = path.resolve(__dirname, 'sysmon.db')
 
-/*
-let database = require('./db.js')
-let saveToDb = require('./saveToDb.js')
-let dbName = 'main.db'
-*/
-/*if (!fs.existsSync(dbName)) {
-    database.initDbWithBaseTables(dbName)
-    setTimeout(function () {
-        // set static data
-        saveToDb.newDataSysInfo(dbName)
-        // initialise first data point for other data
-        saveToDb.newDataSysMonHist(dbName)
-        saveToDb.newDataUsersHist(dbName)
-        saveToDb.newDataFsHist(dbName)
-        //saveToDb.newDataFsIoHist(dbName)
-        saveToDb.newDataNetHist(dbName)
-        saveToDb.newDataDockerInfoHist(dbName)
-    }, 2500)
-}
-*/
 
 // set CORS header
 app.use((req, res, next) => {
