@@ -39,7 +39,7 @@ class SQLiteReader {
         else sqlCmd += cols.join(', ')
 
         // set table
-        sqlCmd += 'FROM ' + table
+        sqlCmd += ' FROM ' + table
 
         if (params.length) {
             sqlCmd += ' '

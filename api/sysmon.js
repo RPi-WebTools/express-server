@@ -1,5 +1,14 @@
+const path = require('path')
 const express = require('express')
 const routerSysMon = express.Router()
+
+const DAO = require('../db/dao')
+const SQLiteReader = require('../db/getData')
+const dbRef = require('../sysmon-fetcher/initDb')
+const dbName = path.resolve(path.join(__dirname, '../'), 'sysmon.db')
+
+let dao = new DAO(dbName)
+let reader = new SQLiteReader(dao)
 
 routerSysMon.use((req, res, next) => {
     console.log('sysmon router hit for: %s', req.originalUrl)
@@ -8,18 +17,11 @@ routerSysMon.use((req, res, next) => {
 
 routerSysMon.get('/test', (req, res) => res.send('Test message'))
 
-routerSysMon.get('/devInfo', (req, res) => res.send({
-    manufacturer: 'RPi Foundation',
-    model: 'Raspberry Pi 4 B',
-    version: 'Rev 1.1',
-    cpuManufacturer: 'ARM',
-    cpuCores: '4',
-    memory: '4 GB',
-    osDistro: 'Linux Raspbian',
-    osCode: 'buster',
-    osHostname: 'raspi',
-    uptime: '1d 16h'
-}))
+routerSysMon.get('/devInfo', (req, res, next) => {
+    reader.readAllRows(dbRef.tableDevInfo, dbRef.getColsDevInfo().names).then(data => {
+        res.send(data[0])
+    }).catch(next)
+})
 
 routerSysMon.get('/fsInfo', (req, res) => res.send([
     {
@@ -135,26 +137,11 @@ routerSysMon.get('/fsHist', (req, res) => res.send([
     }
 ]))
 
-routerSysMon.get('/userInfo', (req, res) => res.send([
-    {
-        num: 1,
-        user: 'pi',
-        terminal: 'ttyBla',
-        loginDate: '07.03.20',
-        loginTime: '13:00',
-        ip: '192.168.100.100',
-        lastCmd: 'htop'
-    },
-    {
-        num: 2,
-        user: 'raspi',
-        terminal: 'ttyBlub',
-        loginDate: '10.03.80',
-        loginTime: '17:00',
-        ip: '192.168.6.30',
-        lastCmd: 'nope'
-    }
-]))
+routerSysMon.get('/userInfo', (req, res, next) => {
+    reader.readAllRows(dbRef.tableUserInfo, dbRef.getColsUserInfo().names).then(data => {
+        res.send(data)
+    }).catch(next)
+})
 
 routerSysMon.get('/userHist', (req, res) => res.send({
     timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
