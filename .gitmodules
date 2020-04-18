@@ -1,3 +1,6 @@
 [submodule "sysmon-fetcher"]
 	path = sysmon-fetcher
 	url = https://github.com/RPi-WebTools/sysmon-fetcher.git
+[submodule "DBmngr"]
+	path = DBmngr
+	url = https://github.com/RPi-WebTools/DBmngr.git

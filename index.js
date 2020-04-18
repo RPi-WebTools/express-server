@@ -13,13 +13,14 @@ const registerCronJobs = require('./registerCronJobs')
 const dbName = path.resolve(__dirname, 'sysmon.db')
 
 // set up database (create if necessary and get data once)
+let cronJobs = {}
 sysmonFetcher.getCurrentUuids().then(uuids => {
     sysmonFetcher.initialise(dbName, uuids).then(() => {
         sysmonFetcher.newData(dbName, 'all', uuids)
     })
 
     // set up regular data updates
-    registerCronJobs(dbName, uuids)
+    cronJobs = registerCronJobs(dbName, uuids)
 })
 
 // set CORS header
@@ -29,7 +30,7 @@ app.use((req, res, next) => {
     next()
 })
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/', (req, res) => res.send('A wild API appeared!'))
 
 // set main routes
 app.use('/api/sysmon', routerSysMon)
@@ -48,4 +49,31 @@ app.use(function (req, res, next) {
 app.use('/static', express.static(path.join(__dirname, 'public')))
 
 // start server
-app.listen(port, () => console.log(`Express app now listening on port ${port}!`))
+const server = app.listen(port, () => console.log(`Express app now listening on port ${port}!`))
+
+// close server and wait for any cron jobs when shutting down
+const gracefulShutdown = () => {
+    console.log('Shutting down...')
+    server.close(() => {
+        console.log('Express app closed.')
+
+        while (!(cronJobs.daily.getStatus() === 'scheduled' && 
+                cronJobs.hourly.getStatus() === 'scheduled' && 
+                cronJobs.halfMinutely.getStatus() === 'scheduled')) {}
+
+        console.log('No cron job currently running, exiting..')
+        process.exit(0)
+    })
+}
+
+process.on('SIGTERM', () => {
+    console.log('\n')
+    console.log('SIGTERM received.')
+    gracefulShutdown()
+})
+
+process.on('SIGINT', () => {
+    console.log('\n')
+    console.log('SIGINT received.')
+    gracefulShutdown()
+})

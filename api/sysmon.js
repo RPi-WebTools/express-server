@@ -2,13 +2,20 @@ const path = require('path')
 const express = require('express')
 const routerSysMon = express.Router()
 
-const DAO = require('../db/dao')
-const SQLiteReader = require('../db/getData')
+const DAO = require('../DBmngr/dao')
+const SQLiteReader = require('../DBmngr/sqliteReader')
 const dbRef = require('../sysmon-fetcher/initDb')
+const sleep = require('../sysmon-fetcher').sleep
 const dbName = path.resolve(path.join(__dirname, '../'), 'sysmon.db')
 
-let dao = new DAO(dbName)
-let reader = new SQLiteReader(dao)
+let dao = null
+let reader = null
+
+// wait some time in case the database is being newly created
+sleep(2000).then(() => {
+    dao = new DAO(dbName, 'RO')
+    reader = new SQLiteReader(dao)
+})
 
 routerSysMon.use((req, res, next) => {
     console.log('sysmon router hit for: %s', req.originalUrl)
