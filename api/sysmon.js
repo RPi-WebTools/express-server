@@ -17,12 +17,26 @@ sleep(2000).then(() => {
     reader = new SQLiteReader(dao)
 })
 
+function sortedIndexToInsert(compareArray, insertValue) {
+    let low = 0
+    let high = compareArray.length
+
+    while (low < high) {
+        let mid = (low + high) >>> 1
+        if (compareArray[mid] < insertValue) {
+            low = mid + 1
+        }
+        else {
+            high = mid
+        }
+    }
+    return low
+}
+
 routerSysMon.use((req, res, next) => {
     console.log('sysmon router hit for: %s', req.originalUrl)
     next()
 })
-
-routerSysMon.get('/test', (req, res) => res.send('Test message'))
 
 routerSysMon.get('/devInfo', (req, res, next) => {
     reader.readAllRows(dbRef.tableDevInfo, dbRef.getColsDevInfo().names).then(data => {
@@ -145,54 +159,154 @@ routerSysMon.get('/fsHist', (req, res) => res.send([
 ]))
 
 routerSysMon.get('/userInfo', (req, res, next) => {
-    reader.readAllRows(dbRef.tableUserInfo, dbRef.getColsUserInfo().names).then(data => {
-        res.send(data)
+    reader.readAllRows(
+        dbRef.tableUserInfo,
+        dbRef.getColsUserInfo().names,
+        {
+            orderBy: 'timestamp',
+            orderOrientation: 'DESC'
+        }
+    ).then(data => {
+        // only send most recent info
+        res.send(data.filter(obj => obj.timestamp === data[0].timestamp))
     }).catch(next)
 })
 
-routerSysMon.get('/userHist', (req, res) => res.send({
-    timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-    users: {
-        pi: [1, 3, 2, 5, 1, 1, 9, 0, 1],
-        raspi: [0, 6, 2, 3, 4, 0, 3, 2, 2]
-    }
-}))
+routerSysMon.get('/userHist', (req, res, next) => {
+    reader.readAllRows(dbRef.tableUserInfo, dbRef.getColsUserInfo().names).then(data => {
+        let loginTimestamps = []
+        let users = {}
 
-routerSysMon.get('/netInfo', (req, res) => res.send([
-    {
-        num: 1,
-        iface: 'eth0',
-        ip: '192.168.100.100',
-        mac: '00ebfedasvdewieuvfavea',
-        type: 'wired',
-        speed: '1000',
-        dhcp: 'true',
-        rx: 203754,
-        tx: 295352
-    },
-    {
-        num: 2,
-        iface: 'eth1',
-        ip: '192.168.52.40',
-        mac: '0998gqaw98gf8o47v',
-        type: 'wireless',
-        speed: '100',
-        dhcp: 'false',
-        rx: 27833,
-        tx: 69829
-    }
-]))
+        let tempUsers = []
+        data.forEach(element => {
+            tempUsers.push(element.user)
+        })
+        
+        tempUsers = tempUsers.filter((item, index) => tempUsers.indexOf(item) === index)
+        tempUsers.forEach(user => {
+            let userData = data.filter(obj => obj.user === user)
+            let userDates = []
+            userData.forEach(element => {
+                userDates.push(element.loginDate)
+            })
 
-routerSysMon.get('/netHist', (req, res) => res.send({
-    timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-    rx: [10, 32, 26, 54, 19, 18, 92, 4, 21],
-    tx: [25, 32, 26, 54, 33, 39, 29, 42, 44]
-}))
+            // generate object with counted loginDates
+            const map = userDates.reduce((acc, e) => acc.set(e, (acc.get(e) || 0) + 1), new Map())
+            const countedDates = Object.assign(...[...map.entries()].map(([k, v]) => ({ [k]: v })))
 
-routerSysMon.get('/cpuInfo', (req, res) => res.send({
-    curCpuLoad: 23,
-    curCpuTemp: 40
-}))
+            const orderedCountedDates = {}
+            Object.keys(countedDates).sort().forEach(key => {
+                orderedCountedDates[key] = countedDates[key]
+            })
+
+            users[user] = []
+
+            Object.keys(orderedCountedDates).forEach(date => {
+                let timestamp = new Date(date).getTime()
+                if (!loginTimestamps.includes(timestamp)) {
+                    let index = sortedIndexToInsert(loginTimestamps, timestamp)
+                    loginTimestamps.splice(index, 0, timestamp)
+
+                    // add new timestamp index to all users
+                    Object.keys(users).forEach(key => {
+                        // if user does not have enough elements to satisfy the needed index, fill with zeros
+                        if (users[key].length < index) {
+                            users[key].push(...Array.from(Array(index + 1), () => 0))
+                        }
+                        users[key].splice(index, 0, 0)
+
+                        if (key === user && orderedCountedDates[date] >= 0) {
+                            users[key][index] = orderedCountedDates[date]
+                        }
+                    })
+                }
+                else {
+                    let index = loginTimestamps.indexOf(timestamp)
+                    users[user][index] = orderedCountedDates[date]
+                }
+            })
+        })
+
+        res.send({
+            timestamps: loginTimestamps,
+            users: users
+        })
+    }).catch(next)
+})
+
+routerSysMon.get('/netInfo', (req, res, next) => {
+    reader.readAllRows(
+        dbRef.tableNetInfo,
+        dbRef.getColsNetInfo().names,
+        {
+            orderBy: 'timestamp',
+            orderOrientation: 'DESC'
+        }
+    ).then(data => {
+        // only send most recent info
+        res.send(data.filter(obj => obj.timestamp === data[0].timestamp))
+    }).catch(next)
+})
+
+routerSysMon.get('/netHist', (req, res, next) => {
+    reader.readAllRows(dbRef.tableNetInfo, dbRef.getColsNetInfo().names).then(data => {
+        let timestamps = []
+        let rx = {}
+        let tx = {}
+
+        let tempIfaces = []
+        data.forEach(element => {
+            timestamps.push(element.timestamp)
+            tempIfaces.push(element.iface)
+        })
+        timestamps = timestamps.filter((item, index) => timestamps.indexOf(item) === index)
+
+        tempIfaces = tempIfaces.filter((item, index) => tempIfaces.indexOf(item) === index)
+        tempIfaces.forEach(iface => {
+            rx[iface] = []
+            tx[iface] = []
+            timestamps.forEach(timestamp => {
+                rx[iface].push(data.filter(obj => obj.timestamp === timestamp && obj.iface === iface)[0].rx)
+                tx[iface].push(data.filter(obj => obj.timestamp === timestamp && obj.iface === iface)[0].tx)
+            })
+        })
+
+        res.send({
+            timestamps: timestamps,
+            rx: rx,
+            tx: tx
+        })
+    }).catch(next)
+})
+
+routerSysMon.get('/cpuInfo', (req, res, next) => {
+    let intermedResult = {}
+    reader.readAllRows(
+        dbRef.tableCpuInfo,
+        dbRef.getColsCpuInfo().names,
+        {
+            orderBy: 'timestamp',
+            orderOrientation: 'DESC'
+        }
+    ).then(data => {
+        intermedResult.cpu = data
+        return reader.readAllRows(
+            dbRef.tableCpuTemp,
+            dbRef.getColsCpuTemp().names,
+            {
+                orderBy: 'timestamp',
+                orderOrientation: 'DESC'
+            }
+        )
+    }).then(data => {
+        // only send most recent info
+        res.send({
+            timestamp: data[0].timestamp,
+            curCpuLoad: intermedResult.cpu[0].cpuLoad,
+            curCpuTemp: data[0].temperature
+        })
+    }).catch(next)
+})
 
 routerSysMon.get('/cpuHist', (req, res) => res.send({
     timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
