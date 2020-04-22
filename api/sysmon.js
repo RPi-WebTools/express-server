@@ -44,85 +44,47 @@ routerSysMon.get('/devInfo', (req, res, next) => {
     }).catch(next)
 })
 
-routerSysMon.get('/fsInfo', (req, res) => res.send([
-    {
-        num: 1,
-        name: '/dev/sda',
-        fsType: 'vfat',
-        label: 'Ext HDD',
-        mount: '/home/pi/ext',
-        size: 1000200990720,
-        used: 794093477888,
-        usedPercentage: 79.3933904540894,
-        uuid: 'eluwgg-398z93',
-        smart: 'Ok',
-        vendor: 'TOSHIBA',
-        modelName: 'External_USB_3.0',
-        interface: 'USB',
-        diskType: 'HD',
-        removable: false,
-        partitionLabels: ['Part1', 'Part2', 'Part3'],
-        partitions: [264697825962, 264697825962, 264125442752]
-    },
-    {
-        num: 2,
-        name: '/dev/sdb',
-        fsType: 'ext4',
-        label: 'HDD',
-        mount: '/home/pi/hdd',
-        size: 999955562496,
-        used: 218658373632,
-        usedPercentage: 21.8668090696155,
-        uuid: 'uibiu-39aasdz93',
-        smart: 'Predicted Failure',
-        vendor: 'Seagate',
-        modelName: 'ST1000DM003-1CH162',
-        interface: 'USB',
-        diskType: 'HD',
-        removable: false,
-        partitionLabels: ['Partition'],
-        partitions: [499977781248]
-    },
-    {
-        num: 3,
-        name: '/dev/sdc',
-        fsType: 'ext4',
-        label: 'HDD',
-        mount: '/home/pi/hdd',
-        size: 3000574668800,
-        used: 1638683799552,
-        usedPercentage: 54.6123319839712,
-        uuid: '6357s-398z93',
-        smart: 'unknown',
-        vendor: 'Intenso',
-        modelName: 'USB_3.0_Device',
-        interface: 'USB',
-        diskType: 'HD',
-        removable: false,
-        partitionLabels: ['Data', 'Stuff'],
-        partitions: [499977781248, 1000191556266]
-    },
-    {
-        num: 4,
-        name: '/dev/sdd',
-        fsType: 'ext4',
-        label: 'Thumb Drive',
-        mount: '/home/pi/usb',
-        size: 15916335104,
-        used: 10312435104,
-        usedPercentage: 64.7915178752949,
-        uuid: 'fubwligo8aasd',
-        smart: 'unknown',
-        vendor: 'General',
-        modelName: 'USB_Flash_Disk',
-        interface: 'USB',
-        diskType: 'HD',
-        removable: true,
-        partitionLabels: ['Part'],
-        partitions: [15916335104]
-    }
-]))
+routerSysMon.get('/fsInfo', (req, res, next) => {
+    reader.readAllRows(
+        dbRef.tableFsInfo,
+        dbRef.getColsFsInfo().names,
+        {
+            orderBy: 'timestamp',
+            orderOrientation: 'DESC'
+        }
+    ).then(data => {
+        let result = []
 
+        let lastTimestamp = data[0].timestamp
+        let filtered = data.filter(obj => obj.timestamp === lastTimestamp)
+
+        filtered.forEach((element, index, array) => {
+            result.push({
+                num: index + 1,
+                name: element.name,
+                fsType: element.fsType,
+                label: element.label,
+                mount: element.mount,
+                size: element.size,
+                used: element.used,
+                usedPercentage: element.usedPercentage,
+                uuid: element.uuid,
+                smart: element.smart,
+                vendor: element.vendor,
+                modelName: element.modelName,
+                interface: element.interface,
+                diskType: element.diskType,
+                removable: element.removable,
+                partitionLabels: element.partitionLabels,
+                partitions: element.partitions
+            })
+        })
+
+        res.send(result)
+    }).catch(next)
+})
+
+// TODO: change to readAllRows
 routerSysMon.get('/fsHist', (req, res) => res.send([
     {
         uuid: 'eluwgg-398z93',
@@ -308,24 +270,86 @@ routerSysMon.get('/cpuInfo', (req, res, next) => {
     }).catch(next)
 })
 
-routerSysMon.get('/cpuHist', (req, res) => res.send({
-    timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-    usage: [10, 32, 26, 54, 19, 18, 92, 4, 21],
-    temperature: [25, 32, 26, 54, 33, 39, 29, 42, 44]
-}))
+routerSysMon.get('/cpuHist', (req, res, next) => {
+    let intermedResult = {}
+    reader.readAllRows(dbRef.tableCpuInfo, dbRef.getColsCpuInfo().names).then(data => {
+        intermedResult.cpu = data
+        return reader.readAllRows(dbRef.tableCpuTemp, dbRef.getColsCpuTemp().names)
+    }).then(data => {
+        let timestamps = []
+        let usage = []
 
-routerSysMon.get('/memInfo', (req, res) => res.send({
-    curMemUsed: 20,
-    curMemBuffered: 10,
-    curMemCached: 38
-}))
+        intermedResult.cpu.forEach(element => {
+            timestamps.push(element.timestamp)
+            usage.push(element.cpuLoad)
+        })
 
-routerSysMon.get('/memHist', (req, res) => res.send({
-    timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-    used: [25, 32, 26, 54, 33, 39, 29, 42, 44],
-    buffered: [10, 12, 16, 20, 10, 12, 10, 20, 30],
-    cached: [15, 6, 25, 2, 10, 4, 0, 13, 5],
-    swap: [0, 1, 0, 5, 4, 0, 0, 2, 10]
-}))
+        let temperature = Array.from(Array(timestamps.length), () => null)
+
+        data.forEach(element => {
+            if (!timestamps.includes(element.timestamp)) {
+                let index = sortedIndexToInsert(timestamps, element.timestamp)
+                timestamps.splice(index, 0, element.timestamp)
+
+                // add new timestamp index to usage array
+                usage.splice(index, 0, null)
+
+                temperature.splice(index, 0 , element.temperature)
+            }
+        })
+
+        res.send({
+            timestamps: timestamps,
+            usage: usage,
+            temperature: temperature
+        })
+    }).catch(next)
+})
+
+routerSysMon.get('/memInfo', (req, res, next) => {
+    reader.readAllRows(
+        dbRef.tableMemInfo,
+        dbRef.getColsMemInfo().names,
+        {
+            orderBy: 'timestamp',
+            orderOrientation: 'DESC'
+        }
+    ).then(data => {
+        // only send most recent info
+        res.send({
+            timestamp: data[0].timestamp,
+            curMemUsed: data[0].used,
+            curMemBuffered: data[0].buffered,
+            curMemCached: data[0].cached
+        })
+    }).catch(next)
+})
+
+routerSysMon.get('/memHist', (req, res, next) => {
+    reader.readAllRows(dbRef.tableMemInfo, dbRef.getColsMemInfo().names).then(data => {
+        let timestamps = []
+        let used = []
+        let buffered = []
+        let cached = []
+        let swap = []
+
+        data.forEach(element => {
+            timestamps.push(element.timestamp)
+            used.push(element.used)
+            buffered.push(element.buffered)
+            cached.push(element.cached)
+            swap.push(element.swap)
+        })
+
+        res.send({
+            timestamps: timestamps,
+            used: used,
+            buffered: buffered,
+            cached: cached,
+            swap: swap,
+            swapTotal: data[0].swapTotal
+        })
+    }).catch(next)
+})
 
 module.exports = routerSysMon
