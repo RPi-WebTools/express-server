@@ -7,7 +7,6 @@ const routerSysServ = require('./api/sysserv')
 const routerTVspotter = require('./api/tvspotter')
 
 const app = express()
-const port = 3001
 
 const sysmonFetcher = require('./sysmon-fetcher')
 const registerCronJobs = require('./registerCronJobs')
@@ -51,32 +50,7 @@ app.use(function (req, res, next) {
 // serve static files
 app.use('/static', express.static(path.join(__dirname, 'public')))
 
-// start server
-const server = app.listen(port, () => console.log(`Express app now listening on port ${port}!`))
-
-// close server and wait for any cron jobs when shutting down
-const gracefulShutdown = () => {
-    console.log('Shutting down...')
-    server.close(() => {
-        console.log('Express app closed.')
-
-        while (!(cronJobs.daily.getStatus() === 'scheduled' && 
-                cronJobs.hourly.getStatus() === 'scheduled' && 
-                cronJobs.halfMinutely.getStatus() === 'scheduled')) {}
-
-        console.log('No cron job currently running, exiting..')
-        process.exit(0)
-    })
+module.exports = {
+    app: app,
+    cronJobs: cronJobs
 }
-
-process.on('SIGTERM', () => {
-    console.log('\n')
-    console.log('SIGTERM received.')
-    gracefulShutdown()
-})
-
-process.on('SIGINT', () => {
-    console.log('\n')
-    console.log('SIGINT received.')
-    gracefulShutdown()
-})
