@@ -44,81 +44,169 @@ routerSysMon.get('/devInfo', (req, res, next) => {
     }).catch(next)
 })
 
-routerSysMon.get('/fsInfo', (req, res, next) => {
-    reader.readAllRows(
-        dbRef.tableFsInfo,
-        dbRef.getColsFsInfo().names,
-        {
-            orderBy: 'timestamp',
-            orderOrientation: 'DESC'
-        }
-    ).then(data => {
-        let result = []
+// TODO: use actual function again
+// routerSysMon.get('/fsInfo', (req, res, next) => {
+//     reader.readAllRows(
+//         dbRef.tableFsInfo,
+//         dbRef.getColsFsInfo().names,
+//         {
+//             orderBy: 'timestamp',
+//             orderOrientation: 'DESC'
+//         }
+//     ).then(data => {
+//         let result = []
 
-        let lastTimestamp = data[0].timestamp
-        let filtered = data.filter(obj => obj.timestamp === lastTimestamp)
+//         let lastTimestamp = data[0].timestamp
+//         let filtered = data.filter(obj => obj.timestamp === lastTimestamp)
 
-        filtered.forEach((element, index, array) => {
-            result.push({
-                num: index + 1,
-                name: element.name,
-                fsType: element.fsType,
-                label: element.label,
-                mount: element.mount,
-                size: element.size,
-                used: element.used,
-                usedPercentage: element.usedPercentage,
-                uuid: element.uuid,
-                smart: element.smart,
-                vendor: element.vendor,
-                modelName: element.modelName,
-                interface: element.interface,
-                diskType: element.diskType,
-                removable: element.removable,
-                partitionLabels: element.partitionLabels,
-                partitions: element.partitions
-            })
-        })
+//         filtered.forEach((element, index, array) => {
+//             result.push({
+//                 num: index + 1,
+//                 name: element.name,
+//                 fsType: element.fsType,
+//                 label: element.label,
+//                 mount: element.mount,
+//                 size: element.size,
+//                 used: element.used,
+//                 usedPercentage: element.usedPercentage,
+//                 uuid: element.uuid,
+//                 smart: element.smart,
+//                 vendor: element.vendor,
+//                 modelName: element.modelName,
+//                 interface: element.interface,
+//                 diskType: element.diskType,
+//                 removable: element.removable,
+//                 partitionLabels: element.partitionLabels,
+//                 partitions: element.partitions
+//             })
+//         })
 
-        res.send(result)
-    }).catch(next)
-})
-
-// TODO: change to readAllRows
-routerSysMon.get('/fsHist', (req, res) => res.send([
+//         res.send(result)
+//     }).catch(next)
+// })
+routerSysMon.get('/fsInfo', (req, res) => res.send([
     {
+        num: 1,
+        name: '/dev/sda',
+        fsType: 'vfat',
+        label: 'Ext HDD',
+        mount: '/home/pi/ext',
+        size: 1000200990720,
+        used: 794093477888,
+        usedPercentage: 79.3933904540894,
         uuid: 'eluwgg-398z93',
-        timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-        used: [180823112487, 571856243995, 877133753355, 898486387102, 180823112487, 571856243995, 877133753355, 898486387102, 877133753355],
-        smart: ['Ok', 'Ok', 'Ok', 'Ok', 'Ok', 'Ok', 'Ok', 'Ok', 'Ok'],
-        rx: [20, 30, 40, 20, 40, 30, 20, 40, 0],
-        tx: [10, 20, 40, 45, 11, 12, 20, 49, 20]
+        smart: 'Ok',
+        vendor: 'TOSHIBA',
+        modelName: 'External_USB_3.0',
+        interface: 'USB',
+        diskType: 'HD',
+        removable: false,
+        partitionLabels: ['Part1', 'Part2', 'Part3'],
+        partitions: [264697825962, 264697825962, 264125442752]
     },
     {
+        num: 2,
+        name: '/dev/sdb',
+        fsType: 'ext4',
+        label: 'HDD',
+        mount: '/home/pi/hdd',
+        size: 999955562496,
+        used: 218658373632,
+        usedPercentage: 21.8668090696155,
         uuid: 'uibiu-39aasdz93',
-        timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-        used: [571856243995, 898486387102, 180823112487, 571856243995, 180823112487, 180823112487, 180823112487, 898486387102, 898486387102],
-        smart: ['Ok', 'Ok', 'Ok', 'Ok', 'Predicted Failure', 'Predicted Failure', 'Predicted Failure', 'Predicted Failure', 'Predicted Failure'],
-        rx: [49, 10, 20, 30, 20, 10, 0, 20, 10],
-        tx: [33, 25, 43, 20, 30, 40, 20, 22, 10]
+        smart: 'Predicted Failure',
+        vendor: 'Seagate',
+        modelName: 'ST1000DM003-1CH162',
+        interface: 'USB',
+        diskType: 'HD',
+        removable: false,
+        partitionLabels: ['Partition'],
+        partitions: [499977781248]
     },
     {
+        num: 3,
+        name: '/dev/sdc',
+        fsType: 'ext4',
+        label: 'HDD',
+        mount: '/home/pi/hdd',
+        size: 3000574668800,
+        used: 1638683799552,
+        usedPercentage: 54.6123319839712,
         uuid: '6357s-398z93',
-        timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-        used: [571856243995, 571856243995, 180823112487, 571856243995, 571856243995, 180823112487, 571856243995, 571856243995, 571856243995],
-        smart: ['unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown'],
-        rx: [10, 20, 40, 45, 11, 12, 20, 49, 20],
-        tx: [20, 30, 40, 20, 40, 30, 20, 40, 0]
+        smart: 'unknown',
+        vendor: 'Intenso',
+        modelName: 'USB_3.0_Device',
+        interface: 'USB',
+        diskType: 'HD',
+        removable: false,
+        partitionLabels: ['Data', 'Stuff'],
+        partitions: [499977781248, 1000191556266]
     },
     {
+        num: 4,
+        name: '/dev/sdd',
+        fsType: 'ext4',
+        label: 'Thumb Drive',
+        mount: '/home/pi/usb',
+        size: 15916335104,
+        used: 10312435104,
+        usedPercentage: 64.7915178752949,
         uuid: 'fubwligo8aasd',
-        timestamps: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-        used: [571856243995, 898486387102, 180823112487, 571856243995, 180823112487, 180823112487, 180823112487, 898486387102, 898486387102],
-        smart: ['unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown', 'unknown'],
-        rx: [33, 25, 43, 20, 30, 40, 20, 22, 10],
-        tx: [49, 10, 20, 30, 20, 10, 0, 20, 10]
+        smart: 'unknown',
+        vendor: 'General',
+        modelName: 'USB_Flash_Disk',
+        interface: 'USB',
+        diskType: 'HD',
+        removable: true,
+        partitionLabels: ['Part'],
+        partitions: [15916335104]
     }
 ]))
+
+// TODO: change to readAllRows
+routerSysMon.get('/fsHist', (req, res) => {
+    /*
+    {
+        uuid: 'uibiu-39aasdz93',
+        timestamps: [1587222048368, 1587412989334, 1587593729258, 1587679200006, 1587909122326, 1588018197609, 1588081721827, 1588324039054, 1588411623250],
+        used: [180823112487, 571856243995, 877133753355, 898486387102, 180823112487, 571856243995, 877133753355, 898486387102, 877133753355],
+        smart: ['Ok', 'unknown', 'Ok', 'Ok', 'Ok', 'Predicted Failure', 'Ok', 'Ok', 'Ok'],
+    } */
+    /*reader.readAllRows(dbRef.tableFsInfo, dbRef.getColsFsInfo().names).then(data => {
+        const result = []
+        const uuids = []
+
+        data.forEach(item => {
+            
+        })
+    })*/
+    res.send([{
+        uuid: 'uibiu-39aasdz93',
+        timestamps: [1587222048368, 1587412989334, 1587593729258, 1587679200006, 1587909122326, 1588018197609, 1588081721827, 1588324039054, 1588411623250],
+        used: [180823112487, 571856243995, 877133753355, 898486387102, 180823112487, 571856243995, 877133753355, 898486387102, 877133753355],
+        smart: ['Ok', 'unknown', 'Ok', 'Ok', 'Ok', 'Predicted Failure', 'Ok', 'Ok', 'Ok'],
+    }])
+})
+
+routerSysMon.get('/fsIoHist', (req, res, next) => {
+    reader.readAllRows(dbRef.tableFsIoHist, dbRef.getColsFsIoHist().names).then(data => {
+        const timestamps = []
+        const rx = []
+        const tx = []
+
+        data.forEach(item => {
+            timestamps.push(item.timestamp)
+            rx.push(item.rx)
+            tx.push(item.tx)
+        })
+
+        res.send({
+            timestamps: timestamps.slice(-30),
+            rx: rx.slice(-30),
+            tx: tx.slice(-30)
+        })
+    }).catch(next)
+})
 
 routerSysMon.get('/userInfo', (req, res, next) => {
     reader.readAllRows(
@@ -228,13 +316,26 @@ routerSysMon.get('/netHist', (req, res, next) => {
             rx[iface] = []
             tx[iface] = []
             timestamps.forEach(timestamp => {
-                rx[iface].push(data.filter(obj => obj.timestamp === timestamp && obj.iface === iface)[0].rx)
-                tx[iface].push(data.filter(obj => obj.timestamp === timestamp && obj.iface === iface)[0].tx)
+                try {
+                    rx[iface].push(data.filter(obj => obj.timestamp === timestamp && obj.iface === iface)[0].rx)
+                    tx[iface].push(data.filter(obj => obj.timestamp === timestamp && obj.iface === iface)[0].tx)
+                }
+                catch (e) {
+                    if (e instanceof TypeError) {
+                        rx[iface].push(-1)
+                        tx[iface].push(-1)
+                    }
+                    else {
+                        throw e
+                    }
+                }
             })
+            rx[iface] = rx[iface].slice(-120)
+            tx[iface] = tx[iface].slice(-120)
         })
 
         res.send({
-            timestamps: timestamps,
+            timestamps: timestamps.slice(-120),
             rx: rx,
             tx: tx
         })
@@ -299,9 +400,9 @@ routerSysMon.get('/cpuHist', (req, res, next) => {
         })
 
         res.send({
-            timestamps: timestamps,
-            usage: usage,
-            temperature: temperature
+            timestamps: timestamps.slice(-60),
+            usage: usage.slice(-60),
+            temperature: temperature.slice(-60)
         })
     }).catch(next)
 })
@@ -342,11 +443,11 @@ routerSysMon.get('/memHist', (req, res, next) => {
         })
 
         res.send({
-            timestamps: timestamps,
-            used: used,
-            buffered: buffered,
-            cached: cached,
-            swap: swap,
+            timestamps: timestamps.slice(-60),
+            used: used.slice(-60),
+            buffered: buffered.slice(-60),
+            cached: cached.slice(-60),
+            swap: swap.slice(-60),
             swapTotal: data[0].swapTotal
         })
     }).catch(next)
