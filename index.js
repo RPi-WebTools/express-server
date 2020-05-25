@@ -4,6 +4,7 @@ const express = require('express')
 
 const routerSysMon = require('./api/sysmon')
 const routerSysServ = require('./api/sysserv')
+const routerTVspotter = require('./api/tvspotter')
 
 const app = express()
 const port = 3001
@@ -20,7 +21,8 @@ sysmonFetcher.getCurrentUuids().then(uuids => {
     })
 
     // set up regular data updates
-    cronJobs = registerCronJobs(dbName, uuids)
+    // TODO: uncomment this again, disabled just for tvspotter testing
+    // cronJobs = registerCronJobs(dbName, uuids)
 })
 
 // set CORS header
@@ -35,6 +37,7 @@ app.get('/', (req, res) => res.send('A wild API appeared!'))
 // set main routes
 app.use('/api/sysmon', routerSysMon)
 app.use('/api/sysserv', routerSysServ)
+app.use('/api/tvspotter', routerTVspotter)
 
 // error handler
 app.use(function (err, req, res, next) {
