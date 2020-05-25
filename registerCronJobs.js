@@ -26,15 +26,15 @@ function registerSchedules (dbName, uuids) {
         sysmonFetcher.newData(dbName, 'netInfo')
     })
 
-    // jobs to be run every 30 seconds
-    const halfMinutely = cron.schedule('*/30 * * * * *', () => {
-        console.log('Running cron job every 30 seconds to get new data for: cpuInfo, cpuTemp, memInfo')
+    // jobs to be run every minute
+    const halfMinutely = cron.schedule('* * * * *', () => {
+        console.log('Running cron job every minute to get new data for: cpuInfo, cpuTemp, memInfo')
         sysmonFetcher.newData(dbName, 'cpuInfo')
         sysmonFetcher.newData(dbName, 'cpuTemp')
         sysmonFetcher.newData(dbName, 'memInfo')
     })
 
-    console.log('Registered cron schedules for:\n- Job run once a day at 01:00\n- Job run once per hour\n- Job run every 30 seconds')
+    console.log('Registered cron schedules for:\n- Job run once a day at 01:00\n- Job run once per hour\n- Job run once per minute')
 
     return {
         daily: daily,
