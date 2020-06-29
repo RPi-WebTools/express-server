@@ -13,7 +13,7 @@ const gracefulShutdown = () => {
 
         while (!(cronJobs.daily.getStatus() === 'scheduled' && 
                 cronJobs.hourly.getStatus() === 'scheduled' && 
-                cronJobs.halfMinutely.getStatus() === 'scheduled')) {}
+                cronJobs.minutely.getStatus() === 'scheduled')) {}
 
         console.log('No cron job currently running, exiting..')
         process.exit(0)

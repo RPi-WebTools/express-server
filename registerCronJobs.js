@@ -27,7 +27,7 @@ function registerSchedules (dbName, uuids) {
     })
 
     // jobs to be run every minute
-    const halfMinutely = cron.schedule('* * * * *', () => {
+    const minutely = cron.schedule('* * * * *', () => {
         console.log('Running cron job every minute to get new data for: cpuInfo, cpuTemp, memInfo')
         sysmonFetcher.newData(dbName, 'cpuInfo')
         sysmonFetcher.newData(dbName, 'cpuTemp')
@@ -39,7 +39,7 @@ function registerSchedules (dbName, uuids) {
     return {
         daily: daily,
         hourly: hourly,
-        halfMinutely: halfMinutely
+        minutely: minutely
     }
 }
 
