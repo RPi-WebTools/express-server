@@ -163,29 +163,40 @@ routerSysMon.get('/fsInfo', (req, res) => res.send([
     }
 ]))
 
-// TODO: change to readAllRows
 routerSysMon.get('/fsHist', (req, res) => {
-    /*
-    {
-        uuid: 'uibiu-39aasdz93',
-        timestamps: [1587222048368, 1587412989334, 1587593729258, 1587679200006, 1587909122326, 1588018197609, 1588081721827, 1588324039054, 1588411623250],
-        used: [180823112487, 571856243995, 877133753355, 898486387102, 180823112487, 571856243995, 877133753355, 898486387102, 877133753355],
-        smart: ['Ok', 'unknown', 'Ok', 'Ok', 'Ok', 'Predicted Failure', 'Ok', 'Ok', 'Ok'],
-    } */
-    /*reader.readAllRows(dbRef.tableFsInfo, dbRef.getColsFsInfo().names).then(data => {
+    reader.readAllRows(dbRef.tableFsInfo, dbRef.getColsFsInfo().names).then(data => {
         const result = []
         const uuids = []
 
         data.forEach(item => {
-            
+            if (!uuids.includes(item.uuid)) {
+                uuids.push(item.uuid)
+            }
         })
-    })*/
-    res.send([{
-        uuid: 'uibiu-39aasdz93',
-        timestamps: [1587222048368, 1587412989334, 1587593729258, 1587679200006, 1587909122326, 1588018197609, 1588081721827, 1588324039054, 1588411623250],
-        used: [180823112487, 571856243995, 877133753355, 898486387102, 180823112487, 571856243995, 877133753355, 898486387102, 877133753355],
-        smart: ['Ok', 'unknown', 'Ok', 'Ok', 'Ok', 'Predicted Failure', 'Ok', 'Ok', 'Ok'],
-    }])
+
+        uuids.forEach(uuid => {
+            let uuidData = data.filter(item => item.uuid === uuid)
+
+            let timestamps = []
+            let used = []
+            let smart = []
+
+            uuidData.forEach(element => {
+                timestamps.push(element.timestamp)
+                used.push(element.used)
+                smart.push(element.smart)
+            })
+
+            result.push({
+                uuid: uuid,
+                timestamps: timestamps.slice(-30),
+                used: used.slice(-30),
+                smart: smart.slice(-30)
+            })
+        })
+
+        res.send(result)
+    })
 })
 
 routerSysMon.get('/fsIoHist', (req, res, next) => {
@@ -330,12 +341,12 @@ routerSysMon.get('/netHist', (req, res, next) => {
                     }
                 }
             })
-            rx[iface] = rx[iface].slice(-120)
-            tx[iface] = tx[iface].slice(-120)
+            rx[iface] = rx[iface].slice(-48)
+            tx[iface] = tx[iface].slice(-48)
         })
 
         res.send({
-            timestamps: timestamps.slice(-120),
+            timestamps: timestamps.slice(-48),
             rx: rx,
             tx: tx
         })
