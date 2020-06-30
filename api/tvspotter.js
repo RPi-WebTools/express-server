@@ -6,11 +6,11 @@ const argv = require('../argsHandler')
 
 const routerTVspotter = express.Router()
 
-const TVspotter = require('../../TVspotter')
+const TVspotter = require('../TVspotter')
 const sleep = require('../sysmon-fetcher').sleep
 
 let spotter = new TVspotter(argv.e, argv.u, argv.p, argv.l)
-const dbName = path.resolve(path.join(__dirname, '../../TVspotter'), 'tvspotter.db')
+const dbName = path.resolve(path.join(__dirname, '../TVspotter'), 'tvspotter.db')
 
 if (!fs.existsSync(dbName)) {
     // this is async!
